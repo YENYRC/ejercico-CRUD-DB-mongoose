@@ -1,26 +1,10 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+const mongoose = require('mongoose');
 
-const Task = sequelize.define('Task', {
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    completed: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-    },
-    created_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-    },
-    updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')
-    }
-}, {
-    tableName: 'tasks',
-    timestamps: false
-});
+const TaskSchema = new mongoose.Schema({
+    title: String,
+    completed: Boolean,
+}, { timestamps: true });
+
+const Task = mongoose.model('Task', TaskSchema);
 
 module.exports = Task;

@@ -2,72 +2,50 @@ const express = require('express');
 const router = express.Router();
 const Task = require('../models/Task');
 
-// POST /api/tasks/create - Crear una tarea
+// POST /create - Crear una tarea
 router.post('/create', async (req, res) => {
-    try {
-        const { title } = req.body;
-        const task = await Task.create({ title });
-        res.status(201).json(task);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+  try {
+    const { title } = req.body;
+    if (!title) return res.status(400).json({ message: 'El título es requerido' });
+    const task = new Task({ title });
+    await task.save();
+    res.status(201).json(task);
+  } catch (error) {
+    res.status(500).json({ message: 'Error creando la tarea', error });
+  }
 });
 
-// GET /api/tasks - Obtener todas las tareas
+// GET / - Obtener todas las tareas
 router.get('/', async (req, res) => {
-    try {
-        const tasks = await Task.findAll();
-        res.json(tasks);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+  try {
+    const tasks = await Task.find();
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: 'Error obteniendo las tareas', error });
+  }
 });
 
-// PUT /api/tasks/markAsCompleted/:id - Marcar tarea como completada
-router.put('/markAsCompleted/:id', async (req, res) => {
-    try {
-        const task = await Task.findByPk(req.params.id);
-        if (task) {
-            task.completed = true;
-            await task.save();
-            res.json(task);
-        } else {
-            res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+// PUT /id/:_id - Actualizar el título de una tarea
+router.put('/id/:_id', async (req, res) => {
+  try {
+    const { title } = req.body;
+    const task = await Task.findByIdAndUpdate(req.params._id, { title }, { new: true });
+    if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
+    res.status(200).json(task);
+  } catch (error) {
+    res.status(500).json({ message: 'Error actualizando la tarea', error });
+  }
 });
 
-// PUT /api/tasks/:id - Actualizar título de la tarea
-router.put('/:id', async (req, res) => {
-    try {
-        const task = await Task.findByPk(req.params.id);
-        if (task) {
-            task.title = req.body.title || task.title;
-            await task.save();
-            res.json(task);
-        } else {
-            res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// DELETE /api/tasks/:id - Eliminar una tarea
-router.delete('/:id', async (req, res) => {
-    try {
-        const task = await Task.findByPk(req.params.id);
-        if (task) {
-            await task.destroy();
-            res.json({ message: 'Tarea eliminada' });
-        } else {
-            res.status(404).json({ error: 'Tarea no encontrada' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+// DELETE /id/:_id - Eliminar una tarea
+router.delete('/id/:_id', async (req, res) => {
+  try {
+    const task = await Task.findByIdAndDelete(req.params._id);
+    if (!task) return res.status(404).json({ message: 'Tarea no encontrada' });
+    res.status(200).json({ message: 'Tarea eliminada' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error eliminando la tarea', error });
+  }
 });
 
 module.exports = router;
